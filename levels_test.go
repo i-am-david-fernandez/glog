@@ -1,8 +1,15 @@
 package glog
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+
+	"github.com/onsi/gomega"
+)
 
 func TestNewLogLevel(t *testing.T) {
+
+	g := gomega.NewGomegaWithT(t)
 
 	cases := []struct {
 		input    string
@@ -19,18 +26,39 @@ func TestNewLogLevel(t *testing.T) {
 	}
 
 	for _, c := range cases {
+
 		got, err := NewLogLevel(c.input)
 
-		if got != c.expected {
-			t.Fail()
+		if c.ok {
+			g.Expect(err).To(gomega.BeNil())
+		} else {
+			g.Expect(err).NotTo(gomega.BeNil())
 		}
 
-		if c.ok && (err != nil) {
-			t.Fail()
-		}
+		g.Expect(got).To(gomega.Equal(c.expected))
+	}
+}
 
-		if !c.ok && (err == nil) {
-			t.Fail()
-		}
+func TestLogLevelString(t *testing.T) {
+
+	g := gomega.NewGomegaWithT(t)
+
+	cases := []struct {
+		input    LogLevel
+		expected string
+	}{
+		{Debug, "debug"},
+		{Info, "info"},
+		{Notice, "notice"},
+		{Warning, "warning"},
+		{Error, "error"},
+		{Critical, "critical"},
+	}
+
+	for _, c := range cases {
+
+		got := fmt.Sprint(c.input)
+
+		g.Expect(got).To(gomega.Equal(c.expected))
 	}
 }

@@ -1,6 +1,10 @@
 package glog
 
-import "errors"
+import (
+	"errors"
+
+	logging "github.com/shenwei356/go-logging"
+)
 
 // LogLevel represents the available logging levels.
 type LogLevel int
@@ -45,4 +49,48 @@ func NewLogLevel(name string) (LogLevel, error) {
 	}
 
 	return Debug, errors.New("Invalid LogLevel " + name)
+}
+
+func (level LogLevel) String() string {
+	return logLevelMap[level]
+}
+
+func (level LogLevel) toVendorLevel() (logging.Level, error) {
+
+	switch level {
+	case Debug:
+		return logging.DEBUG, nil
+	case Info:
+		return logging.INFO, nil
+	case Notice:
+		return logging.NOTICE, nil
+	case Warning:
+		return logging.WARNING, nil
+	case Error:
+		return logging.ERROR, nil
+	case Critical:
+		return logging.CRITICAL, nil
+	default:
+		return logging.INFO, errors.New("invalid level")
+	}
+}
+
+func fromVendorLevel(level logging.Level) (LogLevel, error) {
+
+	switch level {
+	case logging.DEBUG:
+		return Debug, nil
+	case logging.INFO:
+		return Info, nil
+	case logging.NOTICE:
+		return Notice, nil
+	case logging.WARNING:
+		return Warning, nil
+	case logging.ERROR:
+		return Error, nil
+	case logging.CRITICAL:
+		return Critical, nil
+	default:
+		return Debug, errors.New("invalid level")
+	}
 }

@@ -28,3 +28,11 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/shenwei356/go-logging"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/onsi/gomega"
+  version = "1.4.2"
