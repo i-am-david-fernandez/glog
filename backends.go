@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
-	colorable "github.com/mattn/go-colorable"
 	logging "github.com/shenwei356/go-logging"
 )
 
@@ -21,21 +21,6 @@ func resetBackends() {
 	}
 
 	logging.SetBackend(backends...)
-}
-
-func newConsoleBackend(tag string, level LogLevel) logging.Backend {
-
-	// Create a console logger
-	format := logging.MustStringFormatter(
-		`%{color} %{level:-8s} ▶ %{message}%{color:reset}`,
-	)
-	backend := logging.NewLogBackend(colorable.NewColorableStderr(), "", 0)
-	formatter := logging.NewBackendFormatter(backend, format)
-	leveller := logging.AddModuleLevel(formatter)
-	vendorLevel, _ := level.toVendorLevel()
-	leveller.SetLevel(vendorLevel, tag)
-
-	return leveller
 }
 
 type _FileBackend struct {
@@ -114,49 +99,56 @@ func (fb _FileBackend) Close() {
 	}
 }
 
-type _RetrievableRecord struct {
-	calldepth int
-	record    *logging.Record
+// ListRecord encapsulates a single session log entry.
+type ListRecord struct {
+	Time    time.Time
+	Level   LogLevel
+	Message string
 }
 
-type _RetrievableBackend struct {
-	records []_RetrievableRecord
+// ListBackend provides a simple list-based store of log records.
+type ListBackend struct {
+	records []ListRecord
 }
 
-func newRetrievableBackend(tag string, level LogLevel) *_RetrievableBackend {
-	return &_RetrievableBackend{
-		records: make([]_RetrievableRecord, 0),
+// NewListBackend creates a new record-list based backend.
+func NewListBackend(module string, level LogLevel) *ListBackend {
+
+	return &ListBackend{
+		records: make([]ListRecord, 0),
 	}
 }
 
-func (backend *_RetrievableBackend) Close() {}
+// Clear removes all stored records from the backend.
+func (backend *ListBackend) Clear() {
+	backend.records = make([]ListRecord, 0)
+}
 
-func (backend *_RetrievableBackend) Log(level logging.Level, calldepth int, record *logging.Record) error {
+// Log implements the Log function required by the Backend interface.
+func (backend *ListBackend) Log(vendorLevel logging.Level, calldepth int, record *logging.Record) error {
 
 	//fmt.Printf("<<%v, %v, %v, %v>>\n", level, calldepth, record.Level, record.Message())
 
-	backend.records = append(backend.records, _RetrievableRecord{
-		calldepth: calldepth,
-		record:    record,
+	level, _ := fromVendorLevel(vendorLevel)
+
+	backend.records = append(backend.records, ListRecord{
+		Time:    record.Time,
+		Level:   level,
+		Message: record.Message(),
 	})
 
 	return nil
 }
 
-func (backend *_RetrievableBackend) Get(minimumLevel LogLevel) []SessionRecord {
+// Get retrieves all stored log records at or above the specified minimim level.
+func (backend *ListBackend) Get(minimumLevel LogLevel) []ListRecord {
 
-	sessionContent := make([]SessionRecord, 0)
+	sessionContent := make([]ListRecord, 0)
 
 	for _, r := range backend.records {
 
-		recordLevel, _ := fromVendorLevel(r.record.Level)
-
-		if recordLevel >= minimumLevel {
-			sessionContent = append(sessionContent, SessionRecord{
-				Time:    r.record.Time,
-				Level:   recordLevel,
-				Message: r.record.Message(),
-			})
+		if r.Level >= minimumLevel {
+			sessionContent = append(sessionContent, r)
 		}
 	}
 

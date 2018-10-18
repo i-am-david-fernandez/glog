@@ -12,12 +12,13 @@ func TestSession(t *testing.T) {
 
 	g := gomega.NewGomegaWithT(t)
 
-	// Close console logging; we don't need it for this test
-	CloseConsole()
+	ClearBackends()
+	backendName := "session"
+	backend := NewListBackend("", Debug)
+	SetBackend(backendName, backend)
 
-	// Reset the session and ensure it is now empty
-	ResetSession()
-	g.Expect(len(GetSession(Debug))).To(gomega.Equal(0))
+	// Verify that the list is initally empty
+	g.Expect(len(backend.Get(Debug))).To(gomega.Equal(0))
 
 	levels := make([]LogLevel, 0)
 	counts := make(map[LogLevel]int)
@@ -37,7 +38,7 @@ func TestSession(t *testing.T) {
 
 		Logf(level, message)
 
-		sessionContent := GetSession(Debug)
+		sessionContent := backend.Get(Debug)
 
 		// Ensure the session contains the expected number of records
 		g.Expect(len(sessionContent)).To(gomega.Equal(index + 1))
@@ -47,4 +48,10 @@ func TestSession(t *testing.T) {
 		g.Expect(last.Level).To(gomega.Equal(level))
 		g.Expect(last.Message).To(gomega.Equal(message))
 	}
+
+	backend.Clear()
+
+	// Verify that the list is empty after clearing.
+	g.Expect(len(backend.Get(Debug))).To(gomega.Equal(0))
+
 }
