@@ -11,7 +11,7 @@ type LogLevel int
 
 // Available log levels.
 const (
-	Debug = iota + 1
+	Debug LogLevel = iota + 1
 	Info
 	Notice
 	Warning
