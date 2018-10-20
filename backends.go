@@ -93,7 +93,7 @@ func (fb FileBackend) Close() {
 	}
 }
 
-// ListRecord encapsulates a single session log entry.
+// ListRecord encapsulates a single log entry.
 type ListRecord struct {
 	Time    time.Time
 	Level   LogLevel
