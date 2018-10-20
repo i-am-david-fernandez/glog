@@ -49,7 +49,7 @@ func TestExample(t *testing.T) {
 		backend logging.Backend
 	}{
 		{"console", NewWriterBackend(os.Stdout, "", Debug, "")},
-		{"temporary", NewFileBackend("", "", Debug, "")},
+		{"temporary", NewFileBackend("", false, "", Debug, "")},
 		{"session", NewListBackend("", Debug)},
 	}
 

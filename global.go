@@ -8,17 +8,13 @@ package glog
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
-	"os"
 
 	logging "github.com/shenwei356/go-logging"
 )
 
-//var globalLogger *Logger
 var globalLogger *logging.Logger
 
 func init() {
-	//globalLogger = NewLogger("")
 	globalLogger = logging.MustGetLogger("")
 	globalBackends = make(map[string]logging.Backend)
 
@@ -53,8 +49,8 @@ func RemoveBackend(name string) error {
 		fmt.Printf("Removing backend for %s (%T)\n", name, backend)
 
 		switch backend.(type) {
-		case *_FileBackend:
-			backend.(*_FileBackend).Close()
+		case *FileBackend:
+			backend.(*FileBackend).Close()
 		}
 
 		delete(globalBackends, name)
@@ -94,52 +90,8 @@ func NewWriterBackend(writer io.Writer, module string, level LogLevel, format st
 	return leveller
 }
 
-// NewFileBackend creates a new file-based backend.
-func NewFileBackend(filename string, module string, level LogLevel, format string) logging.Backend {
-
-	fb := &_FileBackend{}
-
-	if filename == "" {
-		// Use a temporary file
-		handle, err := ioutil.TempFile("", "log")
-		if err != nil {
-			return nil
-		}
-
-		fb.file = handle
-		fb.temporary = true
-	} else {
-		// Create a file logger
-		handle, err := os.Create(filename)
-
-		if err != nil {
-			return nil
-		}
-
-		fb.file = handle
-		fb.temporary = false
-	}
-
-	if format == "" {
-		format = `%{time:2006-01-02 15:04:05.000} ▶ %{level:-8s} ▶ %{message}`
-	}
-
-	fb.format = "plain"
-	backendFormatter := logging.MustStringFormatter(format)
-	backend := logging.NewLogBackend(fb.file, "", 0)
-	formatter := logging.NewBackendFormatter(backend, backendFormatter)
-	leveller := logging.AddModuleLevel(formatter)
-	vendorLevel, _ := level.toVendorLevel()
-	leveller.SetLevel(vendorLevel, module)
-
-	fb.Backend = leveller
-
-	return fb
-}
-
 // Logf logs at the specified level with a format string and set of objects.
 func Logf(level LogLevel, format string, objects ...interface{}) {
-	//globalLogger.Logf(level, format, objects...)
 
 	switch level {
 	case Critical:

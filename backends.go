@@ -23,16 +23,17 @@ func resetBackends() {
 	logging.SetBackend(backends...)
 }
 
-type _FileBackend struct {
+type FileBackend struct {
 	temporary bool
 	file      *os.File
 	format    string
 	logging.Backend
 }
 
-func newFileBackend(tag string, level LogLevel, filename string, fileFormat string) *_FileBackend {
+// NewFileBackend creates a new file-based backend.
+func NewFileBackend(filename string, append bool, module string, level LogLevel, format string) *FileBackend {
 
-	fb := &_FileBackend{}
+	fb := &FileBackend{}
 
 	if filename == "" {
 		// Use a temporary file
@@ -45,7 +46,13 @@ func newFileBackend(tag string, level LogLevel, filename string, fileFormat stri
 		fb.temporary = true
 	} else {
 		// Create a file logger
-		handle, err := os.Create(filename)
+
+		flags := os.O_CREATE | os.O_WRONLY
+		if append {
+			flags |= os.O_APPEND
+		}
+
+		handle, err := os.OpenFile(filename, flags, 0600)
 
 		if err != nil {
 			return nil
@@ -55,37 +62,24 @@ func newFileBackend(tag string, level LogLevel, filename string, fileFormat stri
 		fb.temporary = false
 	}
 
-	var logFormat logging.Formatter
-
-	fmt.Printf("Creating backend with file %s, %s\n", filename, fileFormat)
-
-	if fileFormat == "html" {
-		fb.format = "html"
-		logFormat = logging.MustStringFormatter(
-			`<div class="code %{level}"> %{time:2006-01-02 15:04:05.000} %{level:-8s} %{message}</div>`,
-		)
-
-		//fb.file.WriteString(getHTMLHeader())
-
-	} else {
-		fb.format = "plain"
-		logFormat = logging.MustStringFormatter(
-			`%{time:2006-01-02 15:04:05.000} ▶ %{level:-8s} ▶ %{message}`,
-		)
+	if format == "" {
+		format = `%{time:2006-01-02 15:04:05.000} ▶ %{level:-8s} ▶ %{message}`
 	}
 
+	fb.format = "plain"
+	backendFormatter := logging.MustStringFormatter(format)
 	backend := logging.NewLogBackend(fb.file, "", 0)
-	formatter := logging.NewBackendFormatter(backend, logFormat)
+	formatter := logging.NewBackendFormatter(backend, backendFormatter)
 	leveller := logging.AddModuleLevel(formatter)
 	vendorLevel, _ := level.toVendorLevel()
-	leveller.SetLevel(vendorLevel, tag)
+	leveller.SetLevel(vendorLevel, module)
 
 	fb.Backend = leveller
 
 	return fb
 }
 
-func (fb _FileBackend) Close() {
+func (fb FileBackend) Close() {
 
 	fb.file.Sync()
 	fb.file.Close()
