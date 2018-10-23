@@ -93,29 +93,34 @@ func (fb FileBackend) Close() {
 	}
 }
 
-// ListRecord encapsulates a single log entry.
-type ListRecord struct {
+// Record encapsulates a single log entry.
+type Record struct {
 	Time    time.Time
 	Level   LogLevel
 	Message string
 }
 
+type RecordSummary struct {
+	Level LogLevel
+	Count int
+}
+
 // ListBackend provides a simple list-based store of log records.
 type ListBackend struct {
-	records []ListRecord
+	records []Record
 }
 
 // NewListBackend creates a new record-list based backend.
 func NewListBackend(module string, level LogLevel) *ListBackend {
 
 	return &ListBackend{
-		records: make([]ListRecord, 0),
+		records: make([]Record, 0),
 	}
 }
 
 // Clear removes all stored records from the backend.
 func (backend *ListBackend) Clear() {
-	backend.records = make([]ListRecord, 0)
+	backend.records = make([]Record, 0)
 }
 
 // Log implements the Log function required by the Backend interface.
@@ -125,7 +130,7 @@ func (backend *ListBackend) Log(vendorLevel logging.Level, calldepth int, record
 
 	level, _ := fromVendorLevel(vendorLevel)
 
-	backend.records = append(backend.records, ListRecord{
+	backend.records = append(backend.records, Record{
 		Time:    record.Time,
 		Level:   level,
 		Message: record.Message(),
@@ -135,9 +140,9 @@ func (backend *ListBackend) Log(vendorLevel logging.Level, calldepth int, record
 }
 
 // Get retrieves all stored log records at or above the specified minimim level.
-func (backend *ListBackend) Get(minimumLevel LogLevel) []ListRecord {
+func (backend *ListBackend) Get(minimumLevel LogLevel) []Record {
 
-	sessionContent := make([]ListRecord, 0)
+	sessionContent := make([]Record, 0)
 
 	for _, r := range backend.records {
 
@@ -147,4 +152,27 @@ func (backend *ListBackend) Get(minimumLevel LogLevel) []ListRecord {
 	}
 
 	return sessionContent
+}
+
+// Summary retrieves a summary of the counts of all records at each level.
+func (backend *ListBackend) Summary() []*RecordSummary {
+
+	summaryMap := make(map[LogLevel]*RecordSummary)
+	for _, l := range ListLogLevels() {
+		summaryMap[l] = &RecordSummary{
+			Level: l,
+			Count: 0,
+		}
+	}
+
+	for _, r := range backend.records {
+		summaryMap[r.Level].Count++
+	}
+
+	summary := make([]*RecordSummary, 0)
+	for _, l := range ListLogLevels() {
+		summary = append(summary, summaryMap[l])
+	}
+
+	return summary
 }
