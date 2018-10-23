@@ -55,6 +55,19 @@ func (level LogLevel) String() string {
 	return logLevelMap[level]
 }
 
+// ListLogLevels returns an ordered list of available log levels, useful for iteration.
+func ListLogLevels() []LogLevel {
+
+	return []LogLevel{
+		Debug,
+		Info,
+		Notice,
+		Warning,
+		Error,
+		Critical,
+	}
+}
+
 func (level LogLevel) toVendorLevel() (logging.Level, error) {
 
 	switch level {
