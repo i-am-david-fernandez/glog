@@ -6,7 +6,6 @@
 package glog
 
 import (
-	"fmt"
 	"io"
 
 	logging "github.com/shenwei356/go-logging"
@@ -35,7 +34,6 @@ func SetBackend(name string, backend logging.Backend) error {
 		RemoveBackend(name)
 	}
 
-	fmt.Printf("Setting backend for %s\n", name)
 	globalBackends[name] = backend
 	resetBackends()
 
@@ -46,7 +44,6 @@ func SetBackend(name string, backend logging.Backend) error {
 func RemoveBackend(name string) error {
 
 	if backend, ok := globalBackends[name]; ok {
-		fmt.Printf("Removing backend for %s (%T)\n", name, backend)
 
 		switch backend.(type) {
 		case *FileBackend:

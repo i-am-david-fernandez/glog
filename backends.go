@@ -1,7 +1,6 @@
 package glog
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -15,8 +14,7 @@ func resetBackends() {
 
 	backends := make([]logging.Backend, 0)
 
-	for k, v := range globalBackends {
-		fmt.Printf("Adding backend for %s\n", k)
+	for _, v := range globalBackends {
 		backends = append(backends, v)
 	}
 
