@@ -48,6 +48,8 @@ func NewFileBackend(filename string, append bool, module string, level LogLevel,
 		flags := os.O_CREATE | os.O_WRONLY
 		if append {
 			flags |= os.O_APPEND
+		} else {
+			flags |= os.O_TRUNC
 		}
 
 		handle, err := os.OpenFile(filename, flags, 0600)
