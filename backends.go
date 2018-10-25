@@ -81,7 +81,11 @@ func NewFileBackend(filename string, append bool, module string, level LogLevel,
 
 func (fb FileBackend) Close() {
 
-	fb.file.Sync()
+	if err := fb.file.Sync(); err != nil {
+		// Not a lot we can do.
+		Errorf("Could not sync file content to disc: %v", err)
+	}
+
 	fb.file.Close()
 
 	if fb.temporary {
