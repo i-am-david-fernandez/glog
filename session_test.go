@@ -17,7 +17,7 @@ func TestSession(t *testing.T) {
 	backend := NewListBackend("", Debug)
 	SetBackend(backendName, backend)
 
-	// Verify that the list is initally empty
+	// Verify that the list is initially empty
 	g.Expect(len(backend.Get(Debug))).To(gomega.Equal(0))
 
 	levels := make([]LogLevel, 0)
