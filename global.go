@@ -1,8 +1,9 @@
 // Package glog is a go logging library.
 //
-// Primarily, it is a convenience wrapper around shenwei356's fork of go-logging (https://github.com/shenwei356/go-logging)
+// Primarily, it is a convenience wrapper around go-logging (specifically shenwei356's fork at https://github.com/shenwei356/go-logging).
 //
-// Its primary intended use is within short-lived, typically-unattended applications, such as those that may be periodically run on a server. The driving force was the desire for logging a set of backup-management tools on a home NAS. These tools are typically run in attended mode initially (for example, to setup repositories or test configuration), such that console logging is important, but thereafter are run unattended (for example, via crond), where file-based logging and retrieval of log content for e-mailing is important. Further, these tools operate on a set of "profiles" (for example, they perform backups for a configured set of users, with each user having an independent configuration or "profile"), such that the notion of session-based logging (i.e., separate logging for each processed profile) is important. To accomodate this, glog includes a session logging backend that may be aribrarily reset/cleared or retrieved for storage or transmission.
+// glog provides convenience functions for configuring commonly-used logging backends (console and file) and for submitting log messages via a (package-scoped) global logger, akin to the print-style helper methods in the standard libary log package. It also includes additional backends: a convenience file-based backend and an (unlimited-size) in-memory list backend. This list backend is intended for use in relatively short-lived scenarios, such as batch-processing operations where the log output from each batch is to be treated independently (e.g., conditionally stored or transmitted). In such scenarios, one would clear the backend at the beginning of each batch run and decide what to do with the results at the end. A summary (the number of logged messages of each log level) is available to aid in conditional use.
+
 package glog
 
 import (
