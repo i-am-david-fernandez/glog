@@ -7,6 +7,7 @@ package glog
 
 import (
 	"io"
+	"reflect"
 
 	logging "github.com/shenwei356/go-logging"
 )
@@ -29,6 +30,10 @@ func Close() {
 
 // SetBackend adds or replaces a named backend.
 func SetBackend(name string, backend logging.Backend) error {
+
+	if backend == nil || reflect.ValueOf(backend).IsNil() {
+		return nil
+	}
 
 	if _, ok := globalBackends[name]; ok {
 		RemoveBackend(name)

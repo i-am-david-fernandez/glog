@@ -37,6 +37,7 @@ func NewFileBackend(filename string, append bool, module string, level LogLevel,
 		// Use a temporary file
 		handle, err := ioutil.TempFile("", "log")
 		if err != nil {
+			Criticalf("Could not open temporary file for logging: %s", err)
 			return nil
 		}
 
@@ -53,8 +54,8 @@ func NewFileBackend(filename string, append bool, module string, level LogLevel,
 		}
 
 		handle, err := os.OpenFile(filename, flags, 0600)
-
 		if err != nil {
+			Criticalf("Could not open file %s for logging: %s", filename, err)
 			return nil
 		}
 
